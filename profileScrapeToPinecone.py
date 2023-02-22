@@ -143,7 +143,7 @@ if __name__ == "__main__":
     write_list(extended, "serializedData.txt")
     print("wrote data to file using pickle")
 
-    #upload extended vectors to pinecone
+    #upload extended vectors to pinecone, keep first vector for query later
     uploadVecToPinecone(extended[1:], profileURLS)
     print("Uploaded embeddings to pinecone except first profile")
 
