@@ -65,7 +65,8 @@ def extractKeywords(profileData):
 
   keywords = []
   for profiles in profileData:
-    print("getting new profile data")
+    print("pulling keywords from profile number ", i)
+    i += 1
     keywordProfile = []
     for parts in profiles:
       current = parts
