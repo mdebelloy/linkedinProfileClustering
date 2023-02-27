@@ -5,21 +5,20 @@ This code scrapes the list of Linkedin profiles for their education and experien
 # queryPinecone.py
 This code takes the first profile from the list and queries Pinecone for the closest 3 other profiles in Eucledian distance, which gives an output like this:
 ```
-  The 3 closest profiles to  https://www.linkedin.com/in/filip-dvorak-n1/  are: 
-  
-  {'matches': [{'id': 'maximillian-burton-637b214/',
-                'score': 2.04834867,
-                'values': []},
-               {'id': 'himanshu-gupta-83477a17/',
-                'score': 2.10669565,
-                'values': []},
-               {'id': 'oskarhjertonsson/', 'score': 2.13094831, 'values': []}],
-   'namespace': ''}
+The 3 closest profiles to  https://www.linkedin.com/in/filip-dvorak-n1/  are: 
+
+{'matches': [{'id': 'himanshu-gupta-83477a17/',
+              'score': 1.92792463,
+              'values': []},
+             {'id': 'oskarhjertonsson/', 'score': 2.14295626, 'values': []},
+             {'id': 'timhyoung/', 'score': 2.40625238, 'values': []}],
+ 'namespace': ''}
+
 ```
 
 # plotCluster.py
 This code takes the embedded dataset, reduces its dimensionality from 1536 to 30 using PCA, then to 2 using T-SNE. The data is then plotted, and colored according to a K-means clustering. The number associated to each point shows what profile it represents:
-![ClustersV1](https://user-images.githubusercontent.com/11065853/220770986-72ae1034-ddba-4369-bb5c-5582335b26d0.png)
+![ClustersV2](https://user-images.githubusercontent.com/11065853/221449663-dbbc7695-513a-4523-a894-e2df63d8e802.png)
 
 ```
 1  -->  https://www.linkedin.com/in/filip-dvorak-n1/
