@@ -11,6 +11,9 @@ import json
 import pinecone
 import pickle
 import os
+import spacy
+import nltk
+from rake_nltk import Rake
 
 #set path to chromedriver that Selenium can access
 path = "./chromedriver_mac64/chromedriver"
@@ -22,17 +25,19 @@ def login():
     password = "your-linkedin-password"
 
     driver.get("https://www.linkedin.com/login")
-    time.sleep(1)
+    time.sleep(5)
 
     #login by element, clicking and filling on appropriate boxes
     eml = driver.find_element(by=By.ID, value="username")
     eml.send_keys(email)
+    time.sleep(3)
     passwd = driver.find_element(by=By.ID, value="password")
     passwd.send_keys(password)
     loginbutton = driver.find_element(by=By.XPATH, value="//*[@id=\"organic-div\"]/form/div[3]/button")
+    time.sleep(2)
     loginbutton.click()
     #wait for the page to load
-    time.sleep(3)
+    time.sleep(10)
 
 #Scrape a profile for the experience and education tabs
 def scrapeProfile(profile):
@@ -52,15 +57,29 @@ def scrapeProfile(profile):
 
   return currentProfile
 
-#format data by removing all '\n' from the scraped text
-def formatData(profileData):
-  formatted = []
+#format data by removing all '\n' from the scraped text and returning a string of the top 25 keywords
+def extractKeywords(profileData):
+  nltk.download('stopwords')
+  nltk.download('punkt')
+  rake_nltk_var = Rake()
+
+  keywords = []
   for profiles in profileData:
-    formatedProfile = []
+    print("getting new profile data")
+    keywordProfile = []
     for parts in profiles:
-      formatedProfile.append(parts.replace("\n", " "))
-    formatted.append(formatedProfile)
-  return formatted
+      current = parts
+      # remove dates from experience tab to avoid having too many dates in keywords
+      while current.find("·") != -1:  
+        pos = current.find("·")
+        nextN = current.find("\n" , pos)
+        prevN = current.find("\n" , max(pos - 50,0))
+        current = current[:min(abs(prevN),pos - 1)]+current[max(nextN,pos + 1):]
+      #get Keywords using rake-nltk
+      rake_nltk_var.extract_keywords_from_text(current)
+      keywordProfile.append(' '.join(rake_nltk_var.get_ranked_phrases()[:25]))
+    keywords.append(keywordProfile)
+  return keywords
 
 #extend the education embedding by the education vector
 def extendVec(embeddedData):
@@ -83,8 +102,8 @@ def uploadVecToPinecone(vectors, profileURLS):
 
   #open connection with pinecone
   pinecone.init(
-  api_key="your-pinecone_api-key",
-  environment='your-pinecone-env', # find in console next to api key
+  api_key="your-pinecone-api",
+  environment='us-east1-gcp', # find in console next to api key
   )
 
   #find of create wanted index
@@ -122,12 +141,17 @@ if __name__ == "__main__":
     #close the chrome driver
     driver.quit()
 
-    #remove all '\n's from data
-    formattedData = formatData(profileData)
+    #write raw data to text file
+    write_list(profileData, "rawData.txt")
+    #profileData = pickle.load( open( "rawData.txt", "rb" ) )
+
+    #use rake-nltk to format and pull keywords from data
+    formattedData = extractKeywords(profileData)
 
     embeddedData = []
     #load SBERT 'all-mpnet-base-v2' model
     model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+    #only use for 200 characters of keywords
     model.max_seq_length = 200
     
     #embed each experience and education text for each profile
