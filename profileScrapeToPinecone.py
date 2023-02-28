@@ -44,11 +44,24 @@ def scrapeProfile(profile):
   currentProfile = []
 
   #scrape Experience page
+  driver.get(profile)
+  time.sleep(3)
+  
+  try:
+    bio =  driver.find_element(by=By.ID, value="about")
+    about = bio.find_element_by_xpath("..")
+    currentProfile.append(about.text)
+  except:
+    currentProfile.append(" ")
+    print(profile, " doesn't have an about section")
+  
+
+  #scrape Experience page
   driver.get(profile + "details/experience/")
   time.sleep(3)
   experience =  driver.find_element(by=By.ID, value="main")
   currentProfile.append(experience.text)
-
+  
   #scrape Education page
   driver.get(profile + "details/education/")
   time.sleep(3)
@@ -65,8 +78,6 @@ def extractKeywords(profileData):
 
   keywords = []
   for profiles in profileData:
-    print("pulling keywords from profile number ", i)
-    i += 1
     keywordProfile = []
     for parts in profiles:
       current = parts
@@ -78,7 +89,7 @@ def extractKeywords(profileData):
         current = current[:min(abs(prevN),pos - 1)]+current[max(nextN,pos + 1):]
       #get Keywords using rake-nltk
       rake_nltk_var.extract_keywords_from_text(current)
-      keywordProfile.append(' '.join(rake_nltk_var.get_ranked_phrases()[:25]))
+      keywordProfile.append(' '.join(rake_nltk_var.get_ranked_phrases()[:10]))
     keywords.append(keywordProfile)
   return keywords
 
@@ -86,7 +97,7 @@ def extractKeywords(profileData):
 def extendVec(embeddedData):
   extended = []
   for profiles in embeddedData:
-    extended.append(np.concatenate((profiles[0],profiles[1])))
+    extended.append(profiles[0] + profiles[1] + profiles[2])
   return extended
 
 #upload vectors to pinecone
@@ -99,11 +110,11 @@ def uploadVecToPinecone(vectors, profileURLS):
   for data in vectors:
     listVectors.append(data.tolist())
 
-  INDEX_NAME,INDEX_DIMENSION = 'profiles', (768*2)
+  INDEX_NAME,INDEX_DIMENSION = 'profiles', (768)
 
   #open connection with pinecone
   pinecone.init(
-  api_key="your-pinecone-api",
+  api_key="your-pinecone-api-key",
   environment='us-east1-gcp', # find in console next to api key
   )
 
@@ -149,27 +160,28 @@ if __name__ == "__main__":
     #use rake-nltk to format and pull keywords from data
     formattedData = extractKeywords(profileData)
 
+    #extend experinece embedding with education embedding and bio if it exists
+    extended = extendVec(formattedData)
+
     embeddedData = []
     #load SBERT 'all-mpnet-base-v2' model
     model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-    #only use for 200 characters of keywords
-    model.max_seq_length = 200
+    #only use for 300 characters of keywords
+    model.max_seq_length = 300
     
     #embed each experience and education text for each profile
     for i in range(len(profileURLS)):
-      profileEmbed = [model.encode(formattedData[i][0]) , model.encode(formattedData[i][1])]
+      profileEmbed = model.encode(extended[i])
       embeddedData.append(profileEmbed)
       print("Embedded data:  " + profileURLS[i])
 
-    #extend experinece embedding with education embedding
-    extended = extendVec(embeddedData)
 
     #write data to file using pickle
-    write_list(extended, "serializedData.txt")
+    write_list(embeddedData, "serializedData.txt")
     print("wrote data to file using pickle")
 
     #upload extended vectors to pinecone, keep first vector for query later
-    uploadVecToPinecone(extended[1:], profileURLS)
+    uploadVecToPinecone(embeddedData[1:], profileURLS[1:])
     print("Uploaded embeddings to pinecone except first profile")
 
     
