@@ -14,7 +14,7 @@ The 3 closest profiles to  https://www.linkedin.com/in/filip-dvorak-n1/  are:
 
 
 ```
-
+We see that 2/3 of the closest profiles are also founders that do AI, the third also being technical
 # plotCluster.py
 This code takes the embedded dataset, reduces its dimensionality from 1536 to 30 using PCA, then to 2 using T-SNE. The data is then plotted, and colored according to a K-means clustering. The number associated to each point shows what profile it represents:
 ![ClustersV3](https://user-images.githubusercontent.com/11065853/221754925-d9556da6-08c0-46de-8142-bfa7f5c77926.png)
