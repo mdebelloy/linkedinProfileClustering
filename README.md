@@ -7,18 +7,17 @@ This code takes the first profile from the list and queries Pinecone for the clo
 ```
 The 3 closest profiles to  https://www.linkedin.com/in/filip-dvorak-n1/  are: 
 
-{'matches': [{'id': 'himanshu-gupta-83477a17/',
-              'score': 1.92792463,
-              'values': []},
-             {'id': 'oskarhjertonsson/', 'score': 2.14295626, 'values': []},
-             {'id': 'timhyoung/', 'score': 2.40625238, 'values': []}],
+{'matches': [{'id': 'samzaid/', 'score': 0.757962108, 'values': []},
+             {'id': 'alexandrwang/', 'score': 0.839372754, 'values': []},
+             {'id': 'colbylepore/', 'score': 1.01003814, 'values': []}],
  'namespace': ''}
+
 
 ```
 
 # plotCluster.py
 This code takes the embedded dataset, reduces its dimensionality from 1536 to 30 using PCA, then to 2 using T-SNE. The data is then plotted, and colored according to a K-means clustering. The number associated to each point shows what profile it represents:
-![ClustersV2](https://user-images.githubusercontent.com/11065853/221449663-dbbc7695-513a-4523-a894-e2df63d8e802.png)
+![ClustersV3](https://user-images.githubusercontent.com/11065853/221754925-d9556da6-08c0-46de-8142-bfa7f5c77926.png)
 
 ```
 1  -->  https://www.linkedin.com/in/filip-dvorak-n1/
